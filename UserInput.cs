@@ -6,9 +6,11 @@ namespace Lawang.Coding_Tracker;
 public class UserInput
 {
     private Validation _validation;
+    private CodingController _codingController;
     public UserInput()
     {
         _validation = new Validation();
+        _codingController = new CodingController();
     }
     public void MainMenu()
     {
@@ -41,10 +43,28 @@ public class UserInput
                     try
                     {
                         var codingRecord = GetUserInput();
+                        int rowsAffected = _codingController.Post(codingRecord);
+                        if(rowsAffected == 1)
+                        {
+                            Panel panel = new Panel(new Markup($"[green bold]{rowsAffected} rows Affected[/]\n[grey](Press 'Enter' to Continue.)[/]"))
+                                .Padding(1, 1, 1, 1)
+                                .Header("Result")
+                                .Border(BoxBorder.Rounded);
+                            
+                            AnsiConsole.Write(panel);
+                            Console.ReadLine();
+                        }
+                        else
+                        {
+                            Panel panel = new Panel(new Markup($"[red bold]{rowsAffected} rows Affected[/]\n[grey](Press 'Enter' to Continue.)[/]"))
+                                .Padding(1, 1, 1, 1)
+                                .Header("Result")
+                                .Border(BoxBorder.Rounded);
+                            Console.ReadLine();
+                        }
                     }
-                    catch (ExitOutOfOperationException)
-                    {
-                    }
+                    catch (ExitOutOfOperationException){}
+                    
                     break;
                 case 3:
                     break;
@@ -112,9 +132,6 @@ public class UserInput
         {
             endTime = endTime.AddDays(1);
         }
-
-        Console.WriteLine(startTime.ToShortDateString());
-        Console.ReadLine();
         TimeSpan duration = endTime - startTime;
 
         var codingSession = new CodingSession()

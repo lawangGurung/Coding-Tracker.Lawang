@@ -1,4 +1,5 @@
 using System;
+using System.Configuration;
 using System.Data;
 using Dapper;
 using Microsoft.Data.Sqlite;
@@ -8,9 +9,9 @@ namespace Lawang.Coding_Tracker;
 public class CodingController
 {
     private readonly string _connectionString;
-    public CodingController(string connectionString)
+    public CodingController()
     {
-        _connectionString = connectionString;
+        _connectionString = ConfigurationManager.ConnectionStrings["sqlite"].ConnectionString;
     }
 
     public int Post(CodingSession codingSession)
@@ -19,14 +20,14 @@ public class CodingController
         {
             using IDbConnection connection = new SqliteConnection(_connectionString);
             string insertSQL = 
-                @"INSERT INTO CodingSessions (StartTime, EndTime, Date)
-                VALUES(@startTime, @endTime, @Date)";
+                @"INSERT INTO CodingSessions (StartTime, EndTime, Duration, Date)
+                VALUES(@startTime, @endTime, @Duration, @Date)";
 
             var parameter = new {
-                StartTime = codingSession.StartTime.ToShortTimeString(),
-                EndTime = codingSession.EndTime.ToShortTimeString(),
-                Duration = codingSession.Duration.ToString(),
-                Date = codingSession.Date.ToShortDateString()};
+                @startTime = codingSession.StartTime.ToString("hh:mm tt"),
+                @endTime = codingSession.EndTime.ToString("hh:mm tt"),
+                @Duration = codingSession.Duration.ToString(),
+                @Date = codingSession.Date.ToString("dd/MM/yyyy")};
 
             int affectedRow = connection.Execute(insertSQL,parameter);
 
