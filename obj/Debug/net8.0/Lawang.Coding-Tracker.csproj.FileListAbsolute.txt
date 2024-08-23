@@ -69,3 +69,4 @@
 /home/lawang/Desktop/Academy/Coding-Tracker.Lawang/bin/Debug/net8.0/runtimes/win-x64/native/e_sqlite3.dll
 /home/lawang/Desktop/Academy/Coding-Tracker.Lawang/bin/Debug/net8.0/runtimes/win-x86/native/e_sqlite3.dll
 /home/lawang/Desktop/Academy/Coding-Tracker.Lawang/bin/Debug/net8.0/Dapper.dll
+/home/lawang/Desktop/Academy/Coding-Tracker.Lawang/obj/Debug/net8.0/Lawang.Coding-Tracker.sourcelink.json

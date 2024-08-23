@@ -21,6 +21,7 @@ public class DatabaseManager
                     Id INTEGER PRIMARY KEY AUTOINCREMENT, 
                     StartTime TEXT,
                     EndTime TEXT,
+                    Duration TEXT,
                     Date TEXT
                 )";
             using (var connection = new SqliteConnection(_connectionString))
@@ -40,12 +41,12 @@ public class DatabaseManager
         try
         {
             var insertSQL = 
-                @"INSERT INTO CodingSessions (StartTime, EndTime, Date)
-                    VALUES('10:00 AM', '02:30 PM', '22/08/2024'),
-                          ('02:00 PM', '04:40 PM', '23/08/2024'),
-                          ('05:00 PM', '09:00 PM', '24/08/2023'),
-                          ('05:00 AM', '10:00 AM', '14/08/2024'),
-                          ('03:00 PM', '10:00 PM', '01/08/2024')";
+                @"INSERT INTO CodingSessions (StartTime, EndTime, Duration, Date)
+                    VALUES('10:00 PM', '02:30 PM', '04:30:00', '22/08/2024'),
+                          ('02:00 PM', '04:40 PM', '02:40:00', '23/08/2024'),
+                          ('05:00 PM', '09:00 PM', '04:00:00', '24/08/2023'),
+                          ('05:00 AM', '10:00 AM', '05:00:00', '14/08/2024'),
+                          ('03:00 PM', '10:00 PM', '07:00:00', '01/08/2024')";
             
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
@@ -54,7 +55,7 @@ public class DatabaseManager
         }
         catch(SqliteException ex)
         {
-            AnsiConsole.MarkupLine($"[red]{ex.Message}");
+            AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
             Console.ReadLine();
         }
     }
