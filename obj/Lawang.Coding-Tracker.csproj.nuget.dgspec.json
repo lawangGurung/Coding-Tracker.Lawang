@@ -1,0 +1,79 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/lawang/Desktop/Academy/Coding-Tracker.Lawang/Lawang.Coding-Tracker.csproj": {}
+  },
+  "projects": {
+    "/home/lawang/Desktop/Academy/Coding-Tracker.Lawang/Lawang.Coding-Tracker.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/lawang/Desktop/Academy/Coding-Tracker.Lawang/Lawang.Coding-Tracker.csproj",
+        "projectName": "Lawang.Coding-Tracker",
+        "projectPath": "/home/lawang/Desktop/Academy/Coding-Tracker.Lawang/Lawang.Coding-Tracker.csproj",
+        "packagesPath": "/home/lawang/.nuget/packages/",
+        "outputPath": "/home/lawang/Desktop/Academy/Coding-Tracker.Lawang/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/lawang/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.35, )"
+            },
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.8, )"
+            },
+            "Spectre.Console": {
+              "target": "Package",
+              "version": "[0.49.1, )"
+            },
+            "System.Configuration.ConfigurationManager": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.108/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

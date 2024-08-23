@@ -1,0 +1,177 @@
+using System.Globalization;
+using Spectre.Console;
+
+namespace Lawang.Coding_Tracker;
+
+public class UserInput
+{
+    private Validation _validation;
+    public UserInput()
+    {
+        _validation = new Validation();
+    }
+    public void MainMenu()
+    {
+        bool runApp = true;
+        while (runApp)
+        {
+            Console.Clear();
+
+            //To show the project title "Coding Tracker" in figlet text
+            var titlePanel = new Panel(new FigletText("Coding Tracker").Color(Color.Red))
+                .BorderColor(Color.Aquamarine3)
+                .PadTop(1)
+                .PadBottom(1)
+                .Header(new PanelHeader("[blue3 bold]APPLICATION[/]"))
+                .Border(BoxBorder.Double)
+                .Expand();
+
+
+            AnsiConsole.Write(titlePanel);
+
+            // Selecting the Operation that user want to do in application
+            var selectedOption = SelectMenuOption();
+
+            switch (selectedOption.SelectedValue)
+            {
+                case 1:
+                    break;
+                case 2:
+                    Console.Clear();
+                    try
+                    {
+                        var codingRecord = GetUserInput();
+                    }
+                    catch (ExitOutOfOperationException)
+                    {
+                    }
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+                case 0:
+                    Console.Clear();
+                    Console.WriteLine("Have a Nice Day");
+                    runApp = false;
+                    break;
+            }
+        }
+    }
+
+
+    private MenuOption SelectMenuOption()
+    {
+        AnsiConsole.Write(new Rule("[blue3]Menu Options[/]").LeftJustified().RuleStyle("red"));
+
+        // All the main menu options 
+        List<MenuOption> options = new List<MenuOption>()
+        {
+            new MenuOption() {Display = "View All the Records.", SelectedValue = 1},
+            new MenuOption() {Display = "Add a Record.", SelectedValue = 2},
+            new MenuOption() {Display = "Update a Record.", SelectedValue = 3},
+            new MenuOption() {Display = "Delete a Record.", SelectedValue = 4},
+            new MenuOption() {Display = "Show a Report.", SelectedValue = 5},
+            new MenuOption() {Display = "Exit the Application.", SelectedValue = 0}
+
+
+        };
+
+        // for showing the user all the menu options which user can select from.
+        var selection = AnsiConsole.Prompt(
+            new SelectionPrompt<MenuOption>()
+            .Title("\n[bold cyan underline]What [green]operation[/] do you want to perform?[/]\n")
+            .UseConverter<MenuOption>(c => c.Display)
+            .MoreChoicesText("[grey](Press 'up' and 'down' key to navigate.[/])")
+            .AddChoices(options)
+            .HighlightStyle(Color.Blue3)
+            .WrapAround()
+        );
+
+        return selection;
+    }
+
+    private CodingSession GetUserInput()
+    {
+        var rule = new Rule("[blue3]Start Time[/]").LeftJustified();
+        DateTime startTime = GetUserTime(rule);
+
+        rule = new Rule("[blue3]End Time[/]").LeftJustified();
+        DateTime endTime = GetUserTime(rule);
+
+    /*
+        Usually endTime  is greater than startTime;
+        so, error should occur if end time is smaller than startTime
+        but, 
+        Exception -> User start coding at night 11:00 pm till 2:00 am,
+        Solution -> Add 1 day to the endTime if it is smaller than startTime.  
+    */
+        if (endTime < startTime)
+        {
+            endTime = endTime.AddDays(1);
+        }
+
+        Console.WriteLine(startTime.ToShortDateString());
+        Console.ReadLine();
+        TimeSpan duration = endTime - startTime;
+
+        var codingSession = new CodingSession()
+        {
+            StartTime = startTime,
+            EndTime = endTime,
+            Duration = duration,
+            //Date on which startTime was intiated
+            Date = startTime.Date
+        };
+
+
+        return codingSession;
+    }
+
+    private DateTime GetUserTime(Rule? rule = null)
+    {
+        // Define the expected time formats
+        DateTime time;
+        //loop until user inputs the right format for time or presses "0" to exit to the menu
+        while (true)
+        {
+            if (rule != null)
+                AnsiConsole.Write(rule);
+
+            // Create the panel with the time prompt inside
+            var panel = new Panel(new Markup("Please enter a [green]time[/] (e.g., 12:30 [cyan]AM[/] or 02:30 [cyan]PM[/]) in 12 hr format:\n\t\t[grey bold](press '0' to go back to Menu.)[/]"))
+                .Header("[bold cyan]Time Input[/]", Justify.Center)
+                .Padding(1, 1, 1, 1)
+                .Border(BoxBorder.Rounded)
+                .BorderColor(Color.Blue3);
+
+            // Render the panel
+            AnsiConsole.Write(panel);
+
+            //Ask the user for time input as a string
+            string input = AnsiConsole.Ask<string>("[green]Time[/]: ");
+
+            // Try parse the user input with the 12 hr format
+            if (DateTime.TryParseExact(input, "h:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out time))
+            {
+                break;
+            }
+            else if (input == "0")
+            {
+                throw new ExitOutOfOperationException("");
+            }
+            else
+            {
+                Console.Clear();
+                AnsiConsole.MarkupLine("[red bold]Invalid time format! Please try again.[/]\n");
+                AnsiConsole.MarkupLine("[grey](Tips: Don't Forget to add 'AM' or 'PM' after the input time) [/]\n");
+            }
+
+        }
+        Console.Clear();
+        return time;
+
+    }
+}
