@@ -37,6 +37,18 @@ public class UserInput
             switch (selectedOption.SelectedValue)
             {
                 case 1:
+                    Console.Clear();
+                    List<CodingSession> codingSessions = _codingController.GetAllData();
+
+                    var tableTitle = new Panel(new Markup("[bold underline]CODING - SESSION RECORDS[/]").Centered())
+                        .Padding(1, 1, 1, 1)
+                        .Border(BoxBorder.Double)
+                        .BorderColor(Color.Aqua)
+                        .Expand();
+                    AnsiConsole.Write(tableTitle);
+
+                    if (codingSessions != null)
+                        ViewTable(codingSessions);
                     break;
                 case 2:
                     Console.Clear();
@@ -44,13 +56,13 @@ public class UserInput
                     {
                         var codingRecord = GetUserInput();
                         int rowsAffected = _codingController.Post(codingRecord);
-                        if(rowsAffected == 1)
+                        if (rowsAffected == 1)
                         {
                             Panel panel = new Panel(new Markup($"[green bold]{rowsAffected} rows Affected[/]\n[grey](Press 'Enter' to Continue.)[/]"))
                                 .Padding(1, 1, 1, 1)
                                 .Header("Result")
                                 .Border(BoxBorder.Rounded);
-                            
+
                             AnsiConsole.Write(panel);
                             Console.ReadLine();
                         }
@@ -63,8 +75,8 @@ public class UserInput
                             Console.ReadLine();
                         }
                     }
-                    catch (ExitOutOfOperationException){}
-                    
+                    catch (ExitOutOfOperationException) { }
+
                     break;
                 case 3:
                     break;
@@ -121,13 +133,13 @@ public class UserInput
         rule = new Rule("[blue3]End Time[/]").LeftJustified();
         DateTime endTime = GetUserTime(rule);
 
-    /*
-        Usually endTime  is greater than startTime;
-        so, error should occur if end time is smaller than startTime
-        but, 
-        Exception -> User start coding at night 11:00 pm till 2:00 am,
-        Solution -> Add 1 day to the endTime if it is smaller than startTime.  
-    */
+        /*
+            Usually endTime  is greater than startTime;
+            so, error should occur if end time is smaller than startTime
+            but, 
+            Exception -> User start coding at night 11:00 pm till 2:00 am,
+            Solution -> Add 1 day to the endTime if it is smaller than startTime.  
+        */
         if (endTime < startTime)
         {
             endTime = endTime.AddDays(1);
@@ -189,6 +201,39 @@ public class UserInput
         }
         Console.Clear();
         return time;
+
+    }
+
+    private void ViewTable(List<CodingSession> codingSessions)
+    {
+        var table = new Table()
+             .Border(TableBorder.Rounded)
+             .Expand()
+             .BorderColor(Color.Aqua);
+        
+        table.ShowRowSeparators = true;
+
+        table.AddColumns(new TableColumn[]
+            {
+                 new TableColumn("[green]ID[/]").Centered(),
+                 new TableColumn("[cyan3]Start-Time[/]").Centered(),
+                 new TableColumn("[deeppink4_2]End-Time[/]").Centered(),
+                 new TableColumn("[darkolivegreen2]Duration[/]").Centered()
+            });
+        
+        foreach(var codingSession in codingSessions)
+        {
+            table.AddRow(
+                new Markup($"[green]{codingSession.Id}[/]").Centered(),
+                new Markup($"[cyan3]{codingSession.StartTime.ToString("hh:mm tt")}[/]").Centered(),
+                new Markup($"[deeppink4_2]{codingSession.EndTime.ToString("hh:mm tt")}[/]").Centered(),
+                new Markup($"[darkolivegreen2]{codingSession.Duration.ToString()}[/]").Centered()
+            );
+        }
+        
+        AnsiConsole.Write(table);
+        AnsiConsole.Markup("[grey](press 'ENTER' to go back to Menu.)[/]");
+        Console.ReadLine();
 
     }
 }
