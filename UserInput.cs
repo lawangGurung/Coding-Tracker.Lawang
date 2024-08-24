@@ -7,10 +7,12 @@ public class UserInput
 {
     private Validation _validation;
     private CodingController _codingController;
+    private Visual _visual;
     public UserInput()
     {
         _validation = new Validation();
         _codingController = new CodingController();
+        _visual = new Visual();
     }
     public void MainMenu()
     {
@@ -37,18 +39,10 @@ public class UserInput
             switch (selectedOption.SelectedValue)
             {
                 case 1:
-                    Console.Clear();
-                    List<CodingSession> codingSessions = _codingController.GetAllData();
+                    ViewAllRecords();
 
-                    var tableTitle = new Panel(new Markup("[bold underline]CODING - SESSION RECORDS[/]").Centered())
-                        .Padding(1, 1, 1, 1)
-                        .Border(BoxBorder.Double)
-                        .BorderColor(Color.Aqua)
-                        .Expand();
-                    AnsiConsole.Write(tableTitle);
-
-                    if (codingSessions != null)
-                        ViewTable(codingSessions);
+                    AnsiConsole.Markup("[grey](press 'ENTER' to go back to Menu.)[/]");
+                    Console.ReadLine();
                     break;
                 case 2:
                     Console.Clear();
@@ -56,31 +50,43 @@ public class UserInput
                     {
                         var codingRecord = GetUserInput();
                         int rowsAffected = _codingController.Post(codingRecord);
-                        if (rowsAffected == 1)
-                        {
-                            Panel panel = new Panel(new Markup($"[green bold]{rowsAffected} rows Affected[/]\n[grey](Press 'Enter' to Continue.)[/]"))
-                                .Padding(1, 1, 1, 1)
-                                .Header("Result")
-                                .Border(BoxBorder.Rounded);
 
-                            AnsiConsole.Write(panel);
-                            Console.ReadLine();
-                        }
-                        else
-                        {
-                            Panel panel = new Panel(new Markup($"[red bold]{rowsAffected} rows Affected[/]\n[grey](Press 'Enter' to Continue.)[/]"))
-                                .Padding(1, 1, 1, 1)
-                                .Header("Result")
-                                .Border(BoxBorder.Rounded);
-                            Console.ReadLine();
-                        }
+                        //renders result (rows affected by inserting) using Spectre.Console
+                        _visual.RenderResult(rowsAffected);
                     }
                     catch (ExitOutOfOperationException) { }
 
                     break;
                 case 3:
+                    Console.Clear();
+                    try
+                    {
+                        var codingSessions = _codingController.GetAllData();
+                        _visual.RenderTable(codingSessions);
+                        AnsiConsole.MarkupLine("[grey](Press '0' to go back to main menu.)[/]");
+                        int affectedRow = UpdateRecord();
+
+                        //renders result (rows affected by updating) using Spectre.Console
+                        _visual.RenderResult(affectedRow);
+
+                    }
+                    catch (ExitOutOfOperationException) { }
+
                     break;
                 case 4:
+                    Console.Clear();
+                    try
+                    {
+                        var codingSessions = _codingController.GetAllData();
+                        _visual.RenderTable(codingSessions);
+                        AnsiConsole.MarkupLine("[grey](Press '0' to go back to main menu.)[/]");
+                        int affectedRow = DeleteRecord();
+
+                        //renders result (rows affected by updating) using Spectre.Console
+                        _visual.RenderResult(affectedRow);
+
+                    }
+                    catch (ExitOutOfOperationException) { }
                     break;
                 case 5:
                     break;
@@ -127,11 +133,11 @@ public class UserInput
 
     private CodingSession GetUserInput()
     {
-        var rule = new Rule("[blue3]Start Time[/]").LeftJustified();
-        DateTime startTime = GetUserTime(rule);
+        var rule = new Rule("[steelblue1_1]Start Time[/]").LeftJustified();
+        DateTime startTime = _validation.ValidateUserTime(rule);
 
-        rule = new Rule("[blue3]End Time[/]").LeftJustified();
-        DateTime endTime = GetUserTime(rule);
+        rule = new Rule("[steelblue1_1]End Time[/]").LeftJustified();
+        DateTime endTime = _validation.ValidateUserTime(rule);
 
         /*
             Usually endTime  is greater than startTime;
@@ -159,81 +165,49 @@ public class UserInput
         return codingSession;
     }
 
-    private DateTime GetUserTime(Rule? rule = null)
+    private void ViewAllRecords()
     {
-        // Define the expected time formats
-        DateTime time;
-        //loop until user inputs the right format for time or presses "0" to exit to the menu
-        while (true)
-        {
-            if (rule != null)
-                AnsiConsole.Write(rule);
-
-            // Create the panel with the time prompt inside
-            var panel = new Panel(new Markup("Please enter a [green]time[/] (e.g., 12:30 [cyan]AM[/] or 02:30 [cyan]PM[/]) in 12 hr format:\n\t\t[grey bold](press '0' to go back to Menu.)[/]"))
-                .Header("[bold cyan]Time Input[/]", Justify.Center)
-                .Padding(1, 1, 1, 1)
-                .Border(BoxBorder.Rounded)
-                .BorderColor(Color.Blue3);
-
-            // Render the panel
-            AnsiConsole.Write(panel);
-
-            //Ask the user for time input as a string
-            string input = AnsiConsole.Ask<string>("[green]Time[/]: ");
-
-            // Try parse the user input with the 12 hr format
-            if (DateTime.TryParseExact(input, "h:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out time))
-            {
-                break;
-            }
-            else if (input == "0")
-            {
-                throw new ExitOutOfOperationException("");
-            }
-            else
-            {
-                Console.Clear();
-                AnsiConsole.MarkupLine("[red bold]Invalid time format! Please try again.[/]\n");
-                AnsiConsole.MarkupLine("[grey](Tips: Don't Forget to add 'AM' or 'PM' after the input time) [/]\n");
-            }
-
-        }
         Console.Clear();
-        return time;
+        List<CodingSession> codingSessions = _codingController.GetAllData();
 
+        // title of the codingSessions table
+        var tableTitle = new Panel(new Markup("[bold underline] CODING - SESSIONS [/]").Centered())
+            .Padding(1, 1, 1, 1)
+            .Border(BoxBorder.Double)
+            .BorderColor(Color.Aqua)
+            .Expand();
+        AnsiConsole.Write(tableTitle);
+
+        if (codingSessions != null)
+            // this renders the table in console
+            _visual.RenderTable(codingSessions);
     }
 
-    private void ViewTable(List<CodingSession> codingSessions)
+    private int UpdateRecord()
     {
-        var table = new Table()
-             .Border(TableBorder.Rounded)
-             .Expand()
-             .BorderColor(Color.Aqua);
-        
-        table.ShowRowSeparators = true;
+        var codingSessions = _codingController.GetAllData();
+        CodingSession codingSessionToUpdate = _validation.ValidateCodingSession(codingSessions);
 
-        table.AddColumns(new TableColumn[]
-            {
-                 new TableColumn("[green]ID[/]").Centered(),
-                 new TableColumn("[cyan3]Start-Time[/]").Centered(),
-                 new TableColumn("[deeppink4_2]End-Time[/]").Centered(),
-                 new TableColumn("[darkolivegreen2]Duration[/]").Centered()
-            });
-        
-        foreach(var codingSession in codingSessions)
+        codingSessionToUpdate.StartTime = _validation.ValidateUserTime(new Rule("[steelblue1_1]Update Start-Time[/]").LeftJustified());
+        codingSessionToUpdate.EndTime = _validation.ValidateUserTime(new Rule("[steelblue1_1]Update End-Time[/]").LeftJustified());
+
+        if (codingSessionToUpdate.StartTime > codingSessionToUpdate.EndTime)
         {
-            table.AddRow(
-                new Markup($"[green]{codingSession.Id}[/]").Centered(),
-                new Markup($"[cyan3]{codingSession.StartTime.ToString("hh:mm tt")}[/]").Centered(),
-                new Markup($"[deeppink4_2]{codingSession.EndTime.ToString("hh:mm tt")}[/]").Centered(),
-                new Markup($"[darkolivegreen2]{codingSession.Duration.ToString()}[/]").Centered()
-            );
+            codingSessionToUpdate.EndTime = codingSessionToUpdate.EndTime.AddDays(1);
         }
-        
-        AnsiConsole.Write(table);
-        AnsiConsole.Markup("[grey](press 'ENTER' to go back to Menu.)[/]");
-        Console.ReadLine();
+
+        codingSessionToUpdate.Duration = codingSessionToUpdate.EndTime - codingSessionToUpdate.StartTime;
+
+        return _codingController.Update(codingSessionToUpdate);
 
     }
+
+    private int DeleteRecord()
+    {
+        var codingSessions = _codingController.GetAllData();
+        CodingSession codingSessionToDelete = _validation.ValidateCodingSession(codingSessions);
+        
+        return _codingController.Delete(codingSessionToDelete);
+    }
+
 }

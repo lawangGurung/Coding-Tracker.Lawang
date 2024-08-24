@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lawang.Coding-Tracker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c0723d707a0d6d1e6b50f62123dc02e84e12337a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dfda23ae5319b3bf13866faa8949ba03b74f11d6")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lawang.Coding-Tracker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lawang.Coding-Tracker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
