@@ -59,6 +59,7 @@ public class UserInput
                     break;
                 case 3:
                     Console.Clear();
+                    AnsiConsole.Write(new Rule("[bold aqua]UPDATE RECORD[/]"));
                     try
                     {
                         var codingSessions = _codingController.GetAllData();
@@ -75,6 +76,7 @@ public class UserInput
                     break;
                 case 4:
                     Console.Clear();
+                    AnsiConsole.Write(new Rule("[bold aqua]DELETE RECORD[/]"));
                     try
                     {
                         var codingSessions = _codingController.GetAllData();
@@ -89,6 +91,10 @@ public class UserInput
                     catch (ExitOutOfOperationException) { }
                     break;
                 case 5:
+                    break;
+
+                case 6:
+                    UserTimerToRecord();
                     break;
                 case 0:
                     Console.Clear();
@@ -112,6 +118,7 @@ public class UserInput
             new MenuOption() {Display = "Update a Record.", SelectedValue = 3},
             new MenuOption() {Display = "Delete a Record.", SelectedValue = 4},
             new MenuOption() {Display = "Show a Report.", SelectedValue = 5},
+            new MenuOption() {Display = "Use Timer to record session", SelectedValue = 6},
             new MenuOption() {Display = "Exit the Application.", SelectedValue = 0}
 
 
@@ -186,7 +193,7 @@ public class UserInput
     private int UpdateRecord()
     {
         var codingSessions = _codingController.GetAllData();
-        CodingSession codingSessionToUpdate = _validation.ValidateCodingSession(codingSessions);
+        CodingSession codingSessionToUpdate = _validation.ValidateCodingSession(codingSessions, "update");
 
         codingSessionToUpdate.StartTime = _validation.ValidateUserTime(new Rule("[steelblue1_1]Update Start-Time[/]").LeftJustified());
         codingSessionToUpdate.EndTime = _validation.ValidateUserTime(new Rule("[steelblue1_1]Update End-Time[/]").LeftJustified());
@@ -205,9 +212,43 @@ public class UserInput
     private int DeleteRecord()
     {
         var codingSessions = _codingController.GetAllData();
-        CodingSession codingSessionToDelete = _validation.ValidateCodingSession(codingSessions);
-        
+        CodingSession codingSessionToDelete = _validation.ValidateCodingSession(codingSessions, "delete");
+
         return _codingController.Delete(codingSessionToDelete);
+    }
+
+    private void UserTimerToRecord()
+    {
+        Console.Clear();
+        DateTime startTime = DateTime.Now;
+        TimeSpan duration = StopTimer.UseTimer();
+        Console.Clear();
+
+        //Report on coding Time
+        AnsiConsole.MarkupLine($"[green bold]Starting Time[/]: [underline bold]{startTime.ToString("hh:mm:ss tt")}[/]\n");
+        DateTime endTime = startTime.Add(duration);
+        AnsiConsole.MarkupLine($"[red bold]Ending Time[/]: [underline bold]{endTime.ToString("hh:mm:ss tt")}[/]\n");
+
+        AnsiConsole.Write(new Rule("[yellow]DURATION[/]"));
+        AnsiConsole.MarkupLine($"[lightskyblue1 bold]TOTAL CODING TIME[/]: [greenyellow bold]{duration.ToString("hh\\:mm\\:ss")}[/]\n");
+        bool userSelection = AnsiConsole.Confirm("Would you like to store this coding session in the database?");
+        
+        
+       // Coding session is added to database if user selected "y"
+        Console.WriteLine();
+        if(userSelection)
+        {
+            var codingSession = new CodingSession()
+            {
+                StartTime = startTime,
+                EndTime = endTime,
+                Duration = duration,
+                Date = startTime
+            };
+            int affectedRow = _codingController.Post(codingSession);
+
+            _visual.RenderResult(affectedRow);
+        }
     }
 
 }

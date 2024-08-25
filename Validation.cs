@@ -59,13 +59,13 @@ public class Validation
     // 235 (user's input) -> (Invalid) If there isn't any record in the database with the given record Id,
     //                      User is propmted again to enter the correct value.
     // 0 (user's input) -> (Valid) Exits to Main Menu.
-    public CodingSession ValidateCodingSession(List<CodingSession> codingSessions)
+    public CodingSession ValidateCodingSession(List<CodingSession> codingSessions, string operation)
     {
         CodingSession? codingSessionRecord;
         do
         {
             //Prompts the user to enter the integer value.
-            int userInput = AnsiConsole.Ask<int>("[bold]Enter the Id of the record you want to update: [/]");
+            int userInput = AnsiConsole.Ask<int>($"[bold]Enter the Id of the record you want to {operation}: [/]");
             //Returns to the Main menu.
             if (userInput == 0)
             {

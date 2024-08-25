@@ -63,7 +63,7 @@ public class CodingController
             {
                 @startTime = codingSession.StartTime.ToString("hh:mm tt"),
                 @endTime = codingSession.EndTime.ToString("hh:mm tt"),
-                @Duration = codingSession.Duration.ToString(),
+                @Duration = codingSession.Duration.ToString("hh\\:mm\\:ss"),
                 @Date = codingSession.Date.ToString("dd/MM/yyyy")
             };
 
