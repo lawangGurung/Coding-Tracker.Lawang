@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using Spectre.Console;
 
 namespace Lawang.Coding_Tracker;
@@ -22,19 +23,10 @@ public class UserInput
             Console.Clear();
 
             //To show the project title "Coding Tracker" in figlet text
-            var titlePanel = new Panel(new FigletText("Coding Tracker").Color(Color.Red))
-                .BorderColor(Color.Aquamarine3)
-                .PadTop(1)
-                .PadBottom(1)
-                .Header(new PanelHeader("[blue3 bold]APPLICATION[/]"))
-                .Border(BoxBorder.Double)
-                .Expand();
-
-
-            AnsiConsole.Write(titlePanel);
+            _visual.TitlePanel("Coding Tracker");
 
             // Selecting the Operation that user want to do in application
-            var selectedOption = SelectMenuOption();
+            var selectedOption = _validation.ValidateMenuOption();
 
             switch (selectedOption.SelectedValue)
             {
@@ -90,52 +82,34 @@ public class UserInput
                     }
                     catch (ExitOutOfOperationException) { }
                     break;
-                case 5:
-                    break;
 
                 case 6:
-                    UserTimerToRecord();
+                    UseTimerToRecord();
                     break;
+
+                case 7:
+                    Console.Clear();
+                    FilterDataAndShowReport();
+                    break;
+
+
+                case 8:
+                    Console.Clear();
+                    try
+                    {
+                        SetGoals();
+                        Console.ReadLine();
+                    }
+                    catch(ExitOutOfOperationException){}
+                    break;
+
                 case 0:
                     Console.Clear();
-                    Console.WriteLine("Have a Nice Day");
+                    _visual.TitlePanel("Have a nice day!");
                     runApp = false;
                     break;
             }
         }
-    }
-
-
-    private MenuOption SelectMenuOption()
-    {
-        AnsiConsole.Write(new Rule("[blue3]Menu Options[/]").LeftJustified().RuleStyle("red"));
-
-        // All the main menu options 
-        List<MenuOption> options = new List<MenuOption>()
-        {
-            new MenuOption() {Display = "View All the Records.", SelectedValue = 1},
-            new MenuOption() {Display = "Add a Record.", SelectedValue = 2},
-            new MenuOption() {Display = "Update a Record.", SelectedValue = 3},
-            new MenuOption() {Display = "Delete a Record.", SelectedValue = 4},
-            new MenuOption() {Display = "Show a Report.", SelectedValue = 5},
-            new MenuOption() {Display = "Use Timer to record session", SelectedValue = 6},
-            new MenuOption() {Display = "Exit the Application.", SelectedValue = 0}
-
-
-        };
-
-        // for showing the user all the menu options which user can select from.
-        var selection = AnsiConsole.Prompt(
-            new SelectionPrompt<MenuOption>()
-            .Title("\n[bold cyan underline]What [green]operation[/] do you want to perform?[/]\n")
-            .UseConverter<MenuOption>(c => c.Display)
-            .MoreChoicesText("[grey](Press 'up' and 'down' key to navigate.[/])")
-            .AddChoices(options)
-            .HighlightStyle(Color.Blue3)
-            .WrapAround()
-        );
-
-        return selection;
     }
 
     private CodingSession GetUserInput()
@@ -193,9 +167,11 @@ public class UserInput
     private int UpdateRecord()
     {
         var codingSessions = _codingController.GetAllData();
+        //gets the CodingSession object that needs to be updated
         CodingSession codingSessionToUpdate = _validation.ValidateCodingSession(codingSessions, "update");
-
+        //Update Start Time
         codingSessionToUpdate.StartTime = _validation.ValidateUserTime(new Rule("[steelblue1_1]Update Start-Time[/]").LeftJustified());
+        //Update End Time
         codingSessionToUpdate.EndTime = _validation.ValidateUserTime(new Rule("[steelblue1_1]Update End-Time[/]").LeftJustified());
 
         if (codingSessionToUpdate.StartTime > codingSessionToUpdate.EndTime)
@@ -217,7 +193,7 @@ public class UserInput
         return _codingController.Delete(codingSessionToDelete);
     }
 
-    private void UserTimerToRecord()
+    private void UseTimerToRecord()
     {
         Console.Clear();
         DateTime startTime = DateTime.Now;
@@ -232,11 +208,11 @@ public class UserInput
         AnsiConsole.Write(new Rule("[yellow]DURATION[/]"));
         AnsiConsole.MarkupLine($"[lightskyblue1 bold]TOTAL CODING TIME[/]: [greenyellow bold]{duration.ToString("hh\\:mm\\:ss")}[/]\n");
         bool userSelection = AnsiConsole.Confirm("Would you like to store this coding session in the database?");
-        
-        
-       // Coding session is added to database if user selected "y"
+
+
+        // Coding session is added to database if user selected "y"
         Console.WriteLine();
-        if(userSelection)
+        if (userSelection)
         {
             var codingSession = new CodingSession()
             {
@@ -249,6 +225,164 @@ public class UserInput
 
             _visual.RenderResult(affectedRow);
         }
+    }
+
+    private void FilterDataAndShowReport()
+    {
+        List<CodingSession> codingSessions = _codingController.GetAllData();
+
+        Option selectedFilter;
+
+        do
+        {
+            Console.Clear();
+            // Select the type of filter to apply on all the coding Sessions
+            selectedFilter = _validation.ValidateFilterOption();
+
+            switch (selectedFilter.SelectedValue)
+            {
+                case 1:
+                    DateTime fromToday = DateTime.Now;
+                    List<CodingSession> todaySessions = codingSessions.Where(c => c.Date.Date == fromToday.Date).ToList();
+                    DisplayFilterResult(todaySessions);
+                    break;
+
+                case 2:
+                    DateTime yesterday = DateTime.Now.AddDays(-1);
+                    List<CodingSession> yesterdaySessions = codingSessions.Where(c => c.Date.Date == yesterday.Date).ToList();
+                    DisplayFilterResult(yesterdaySessions);
+                    break;
+
+                case 3:
+                    DateTime thisWeek = DateTime.Now.AddDays(-7);
+                    List<CodingSession> thisWeekSessions = codingSessions.Where(c => c.Date.Date >= thisWeek.Date).ToList();
+
+                    DisplayFilterResult(thisWeekSessions);
+                    break;
+
+                case 4:
+                    DateTime lastWeek = DateTime.Now.AddDays(-14);
+                    List<CodingSession> lastWeekSessions = codingSessions.Where(c => c.Date.Date >= lastWeek.Date).ToList();
+                    DisplayFilterResult(lastWeekSessions);
+                    break;
+
+                case 5:
+                    DateTime thisMonth = DateTime.Now;
+                    List<CodingSession> thisMonthSessions = codingSessions.Where(c =>
+                        c.Date.Month == thisMonth.Month && c.Date.Year == thisMonth.Year).ToList();
+
+                    //Display filtered data in a table
+                    DisplayFilterResult(thisMonthSessions);
+                    break;
+
+                case 6:
+                    DateTime thisYear = DateTime.Now;
+                    List<CodingSession> thisYearSessions = codingSessions.Where(c => c.Date.Date.Year == thisYear.Year).ToList();
+
+                    //Display filtered data in a table
+                    DisplayFilterResult(thisYearSessions);
+                    break;
+
+                case 7:
+                    DateTime lastYear = DateTime.Now.AddYears(-1);
+                    List<CodingSession> lastYearSessions = codingSessions.Where(c => c.Date.Date.Year == lastYear.Year).ToList();
+
+                    //Display filtered data in a table
+                    DisplayFilterResult(lastYearSessions);
+                    break;
+
+                case 8:
+                    List<CodingSession> ascCodingSessions = codingSessions.OrderBy(c => c.Date).ToList();
+                    DisplayFilterResult(ascCodingSessions);
+                    break;
+
+                case 9:
+                    List<CodingSession> descCodingSessions = codingSessions.OrderByDescending(c => c.Date).ToList();
+                    DisplayFilterResult(descCodingSessions);
+
+                    break;
+                case 0:
+                    break;
+            }
+        } while (selectedFilter.SelectedValue != 0);
+    }
+
+    private void DisplayFilterResult(List<CodingSession> codingSessions)
+    {
+        if (codingSessions.Count > 0)
+        {
+            _visual.RenderTable(codingSessions);
+            Console.WriteLine();
+            // Creates a report based on the filtered results
+            CreateReport(codingSessions);
+        }
+        else
+        {
+            AnsiConsole.Write(new Markup("[red bold][[ NO RECORD FROM TODAY!! ]][/]").Centered());
+        }
+
+        AnsiConsole.Write(new Markup("[bold grey](press 'Enter' to continue.)[/]").Centered());
+        Console.ReadLine();
+    }
+
+    private void CreateReport(List<CodingSession> codingSessions)
+    {
+        TimeSpan totalTime = TimeSpan.Zero;
+        foreach (var codingSession in codingSessions)
+        {
+            totalTime += codingSession.Duration;
+        }
+        // first totalTime is converted into Ticks and divided by the total coding session
+        TimeSpan averageTimeSpan = new TimeSpan(totalTime.Ticks / codingSessions.Count);
+        //draw rule
+        Rule rule = new Rule("[seagreen1 on grey0 bold]REPORT[/]").LeftJustified();
+        AnsiConsole.Write(rule);
+        Console.WriteLine();
+
+
+        _visual.ShowReport("Total Time", totalTime.ToString(), "yellow");
+        _visual.ShowReport("Average Time", averageTimeSpan.ToString(), "green");
+    }
+
+    public void SetGoals()
+    {
+    
+        AnsiConsole.Write(new Rule("[green bold]CODING GOAL[/]"));
+        TimeSpan setTime = _validation.ValidateSetTimeDuration();
+        Console.WriteLine();
+        DateTime startingDate = _validation.ValidateStartDate();
+        Console.WriteLine();
+        int days = AnsiConsole.Ask<int>("Enter the number of days you need to complete your coding goals (eg. 1, 2, 11): ");
+
+        Console.WriteLine();
+
+        List<CodingSession> codingSessions = _codingController.GetAllData();
+
+        List<CodingSession> codingGoalSessions = codingSessions
+                .Where(c => c.Date.Date >= startingDate.Date
+                    && c.Date.Date < startingDate.Date.AddDays(days)).ToList();
+
+
+        //adding the totalTime user has coded , from starting date to today
+        TimeSpan totalCodingTime = TimeSpan.Zero;
+
+        foreach (var codingSession in codingGoalSessions)
+        {
+            totalCodingTime += codingSession.Duration;
+        }
+
+        //TimeSpan to representing time user need to complete
+        TimeSpan diffInCodingTime = setTime - totalCodingTime;
+
+        // days left to complete coding goal.
+        int daysLeft = days - (DateTime.Now.DayOfYear - startingDate.DayOfYear);
+        Console.Clear();
+        AnsiConsole.Write(new Rule("[red bold]CODING GOAL REPORT[/]"));
+        _visual.ShowReport("Time Completed", totalCodingTime.ToString(), "green");
+        _visual.ShowReport("Time To Complete", diffInCodingTime.ToString(), "red");
+        _visual.ShowReport("Days left to Complete", daysLeft.ToString(), "red");
+        _visual.ShowReport("Average time you need to code to complete goal", new TimeSpan(diffInCodingTime.Ticks / daysLeft).ToString(), "green");
+
     }
 
 }

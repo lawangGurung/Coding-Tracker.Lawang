@@ -80,5 +80,123 @@ public class Validation
 
         return codingSessionRecord;
     }
+    public Option ValidateMenuOption()
+    {
+        AnsiConsole.Write(new Rule("[blue3]Menu Options[/]").LeftJustified().RuleStyle("red"));
+
+        //All the main menu options 
+        List<Option> options = new List<Option>()
+        {
+            new Option() {Display = "View all the Records.", SelectedValue = 1},
+            new Option() {Display = "Add a Record.", SelectedValue = 2},
+            new Option() {Display = "Update a Record.", SelectedValue = 3},
+            new Option() {Display = "Delete a Record.", SelectedValue = 4},
+            new Option() {Display = "Use Timer to record session", SelectedValue = 6},
+            new Option() {Display = "Filter the Records and Show the Report", SelectedValue = 7},
+            new Option() {Display = "Set Goals", SelectedValue = 8},
+            new Option() {Display = "Exit the Application.", SelectedValue = 0}
+
+
+        };
+
+        //for showing the user all the menu options which user can select from.
+        var selection = AnsiConsole.Prompt(
+            new SelectionPrompt<Option>()
+            .Title("\n[bold cyan underline]What [green]operation[/] do you want to perform?[/]\n")
+            .UseConverter<Option>(c => c.Display)
+            .MoreChoicesText("[grey](Press 'up' and 'down' key to navigate.[/])")
+            .AddChoices(options)
+            .HighlightStyle(Color.Blue3)
+            .WrapAround()
+        );
+
+        return selection;
+    }
+
+    public Option ValidateFilterOption()
+    {
+        AnsiConsole.Write(new Rule("[blue3]Filter Options[/]").LeftJustified().RuleStyle("red"));
+
+        //All the filter options
+        List<Option> options = new List<Option>()
+        {
+            new Option() {Display = "Today", SelectedValue = 1},
+            new Option() {Display = "Yesterday", SelectedValue = 2},
+            new Option() {Display = "Last 7 days", SelectedValue = 3},
+            new Option() {Display = "Last 14 days", SelectedValue = 4},
+            new Option() {Display = "This Month", SelectedValue = 5},
+            new Option() {Display = "This Year", SelectedValue = 6},
+            new Option() {Display = "Last Year", SelectedValue = 7},
+            new Option() {Display = "In Ascending Order", SelectedValue = 8},
+            new Option() {Display = "In Descending Order", SelectedValue = 9},
+            new Option() {Display = "Exit", SelectedValue = 0}
+
+        };
+
+        var selection = AnsiConsole.Prompt(
+            new SelectionPrompt<Option>()
+            .Title("\n[bold cyan underline]What [green]filter[/] do you want to choose?[/]\n")
+            .UseConverter<Option>(c => c.Display)
+            .MoreChoicesText("[grey(Press 'up' and 'down' key to navigate.[/])]")
+            .AddChoices(options)
+            .HighlightStyle(Color.Aqua)
+            .WrapAround()
+        );
+        return selection;
+    }
+
+    public TimeSpan ValidateSetTimeDuration()
+    {
+        AnsiConsole.MarkupLine("[green bold]Write the Total amount of time for your [cyan1]coding goals[/][/]");
+        AnsiConsole.MarkupLine("[grey](press '0' to to go back to menu)[/]");
+        AnsiConsole.Markup("[grey]Enter the time in format (D.hh:mm:ss), where 'D' is day, 'hh' is hour, 'mm' is minutes and 'ss' is seconds[/] (eg. 12:00:00, 1.10:30:00): ");
+        string? userInput = Console.ReadLine()?.Trim();
+        TimeSpan totalCodingTime;
+
+        do
+        {
+            if (userInput == "0")
+            {
+                throw new ExitOutOfOperationException("");
+            }
+            else if(TimeSpan.TryParseExact(userInput, "c", CultureInfo.InvariantCulture, out totalCodingTime))
+            {
+                return totalCodingTime;
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[red bold]Please enter the time in correct format[/]: (eg. 23:12:24, 12:00:00)");
+                userInput = Console.ReadLine()?.Trim();
+            }
+        }while(true);
+
+    }
+
+    public DateTime ValidateStartDate()
+    {
+        AnsiConsole.MarkupLine("[green bold]Give the Starting Date for your [cyan1]Coding Goals[/]?.[/]");
+        AnsiConsole.MarkupLine("[grey](press '0' to go back to menu)[/]");
+        AnsiConsole.Markup("[grey]Enter the date in format (dd/MM/yy) where 'dd' is day, 'MM' is month, 'yy' is year (eg.22/12/24, 10/09/22): [/]");
+        string? userInput = Console.ReadLine()?.Trim();
+
+        DateTime startingDate;
+
+        do
+        {
+            if(DateTime.TryParseExact(userInput, "dd/MM/yy", CultureInfo.InvariantCulture, DateTimeStyles.None,out startingDate))
+            {
+                return startingDate;
+            }
+            else if(userInput ==  "0")
+            {
+                throw new ExitOutOfOperationException("");
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[red bold]Please enter the date in correct format[/]: (eg. 02/05/24, 12/09/11)");
+                userInput = Console.ReadLine()?.Trim();
+            }
+        }while(true);
+    }
 
 }

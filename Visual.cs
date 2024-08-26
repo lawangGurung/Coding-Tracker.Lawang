@@ -5,6 +5,20 @@ namespace Lawang.Coding_Tracker;
 
 public class Visual
 {
+    public void TitlePanel(string title)
+    {
+        //To show the project title "Coding Tracker" in figlet text
+        var titlePanel = new Panel(new FigletText($"{title}").Color(Color.Red))
+                        .BorderColor(Color.Aquamarine3)
+                        .PadTop(1)
+                        .PadBottom(1)
+                        .Header(new PanelHeader("[blue3 bold]APPLICATION[/]"))
+                        .Border(BoxBorder.Double)
+                        .Expand();
+
+
+        AnsiConsole.Write(titlePanel);
+    }
     public void RenderTable(List<CodingSession> codingSessions)
     {
         var table = new Table()
@@ -43,7 +57,7 @@ public class Visual
         }
         else
         {
-           ShowResult("red", rowsAffected); 
+            ShowResult("red", rowsAffected);
         }
     }
 
@@ -56,5 +70,18 @@ public class Visual
 
         AnsiConsole.Write(panel);
         Console.ReadLine();
+    }
+
+    public void ShowReport(string time, string timeSpan, string color)
+    {
+
+        // draw panel
+        Panel panel = new Panel(new Markup($"[{color} bold]{time}[/]: {timeSpan}"))
+                        .Padding(1, 1, 1, 1)
+                        .Header("TIME")
+                        .Border(BoxBorder.Rounded)
+                        .Expand();
+
+        AnsiConsole.Write(panel);
     }
 }
